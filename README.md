@@ -4,4 +4,4 @@ The scripts are currently under development, and further instructions will be in
 
 If you have any questions, contact me at andctully@gmail.com
 
-Copyright (c) Andrew Tully 2017
+Copyright &copy; Andrew Tully 2017
