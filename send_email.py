@@ -4,9 +4,6 @@ import sys
 SERVER = 'smtp.gmail.com'
 PORT = 587
 
-SENDER = 'pythontestbot@gmail.com' # email address of bot sending
-PASSWORD = '120southstreet'
-
 # 'SENDER' 'SENDER_PASSWORD' 'RECEIVER' 'SUBJECT' 'BODY'
 args = sys.argv
 sndr = args[1]
