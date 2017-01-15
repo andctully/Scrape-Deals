@@ -2,27 +2,27 @@ import requests
 from bs4 import BeautifulSoup
 
 # PARAMETERS FOR REFINING DEALS
-lowDiscount = 20 # 20% off minimum
-highDiscount = 100 # 100% off maximum
-lowPrice = 0 # $0.00 minimum price
-highPrice = 10 # $10.00 maximum price
+MIN_DISCOUNT = 20 # 20% off minimum
+MAX_DISCOUNT = 100 # 100% off maximum
+MIN_PRICE = 0 # $0.00 minimum price
+MAX_PRICE = 10 # $10.00 maximum price
 
 host = "https://app.jumpsend.com"
-Deals = []
+pastDeals = []
 
 class Deal:
     url = ""
-    price = "" 
+    price = 0.0
+    discount = 0.0
     shipping = ""
-    discount = ""
     retail = ""
     img_src = ""
 
-    def __init__(self, url, price, shipping, discount, retail, img_src):
+    def __init__(self, url, price, discount, shipping, retail, img_src):
         self.url = url
         self.price = price
-        self.shipping = shipping
         self.discount = discount
+        self.shipping = shipping
         self.retail = retail
         self.img_src = img_src
 
@@ -35,21 +35,33 @@ def getLinks():
         return False
 
     soup = BeautifulSoup(r.content, "html.parser")
-    deals = soup.find_all('div', {'class':'deal'})
-    deal_links = []
-    for deal in deals: 
-        link = deal.find('a', href=True)['href']
-        deal_links.append(host + link)
 
-    return deal_links
+    deals = soup.find_all('div', {'class':'deal'})
+    dealLinks = []
+    for deal in deals: 
+        link = deal.find('a', href=True)
+        if link is None: # 
+            continue
+        else:
+            link = link['href']
+        link = host + link # prepend host name to url
+        if link in pastDeals: # deal was already discovered in past searches
+            continue
+
+        dealLinks.append(link)
+        pastDeals.append(link)
+
+    return dealLinks
 
 # Method for scraping individual deal pages
-def scrapeDeals(deal_links):
-    if not deal_links:
+def scrapeDeals(dealLinks):
+    if not dealLinks:
         print "Error scraping deals"
         return False
 
-    for link in deal_links:
+    Deals = []
+
+    for link in dealLinks:
         r = requests.get(link)
         if r.status_code != 200:
             print "Error loading deal link"
@@ -57,17 +69,56 @@ def scrapeDeals(deal_links):
 
         soup = BeautifulSoup(r.content, "html.parser")
 
-        price = soup.find('span', {'class':'first-price'}).get_text().strip()
-        price += soup.find('span', {'class':'second-price'}).get_text().strip()
-        shipping = soup.find('div', {'class':'product-shipment-cost-show'}).get_text().strip()
-        discount = soup.find('span', {'class':'discount'}).get_text().strip()
-        retail = soup.find('strong').parent.get_text().strip()
-        img_src = soup.find('img', {'class':'img-responsive'})['src']
-        D = Deal(link, price, shipping, discount, retail, img_src)
+        price1 = soup.find('span', {'class':'first-price'})
+        if price1 is None: # first half of price not found
+            continue
+        price1 = price1.get_text().strip()
+
+        price2 = soup.find('span', {'class':'second-price'})
+        if price2 is None: # second half of price not found
+            continue
+        price2 = price2.get_text().strip()
+
+        price = price1 + price2
+        price = float(price[1:]) # remove $ and convert to float
+
+        if price < MIN_PRICE or price > MAX_PRICE:
+            continue # deal did not meet price requirements
+
+        discount = soup.find('span', {'class':'discount'})
+        if discount is None: # discount not found 
+            continue
+        discount = discount.get_text().strip()
+        discount = float(discount[:2]) # remove % and convert to float
+
+        if discount < MIN_DISCOUNT or discount > MAX_DISCOUNT:
+            continue # deal did not meet discount requirements
+
+        shipping = soup.find('div', {'class':'product-shipment-cost-show'})
+        if shipping is None: # shipping info not found
+            shipping = ""
+        else:
+            shipping = shipping.get_text().strip()
+
+        retail = soup.find('strong').parent
+        if retail is None: # retail price not found
+            retail = ""
+        else:
+            retail = retail.get_text().strip()
+            
+        img_src = soup.find('img', {'class':'img-responsive'})
+        if img_src is None: # image src not found
+            img_src = ""
+        else:
+            img_src = img_src['src']
+
+        D = Deal(link, price, discount, shipping, retail, img_src)
         Deals.append(D)
 
-deal_links = getLinks()
-scrapeDeals(deal_links)
-for D in Deals:
-    print D.url
-    print
+    return Deals
+
+dealLinks = getLinks()
+NewDeals = scrapeDeals(dealLinks)
+for Deal in NewDeals:
+    print "price: $" + str(Deal.price)
+    print "discount: " + str(Deal.discount) + "%"
