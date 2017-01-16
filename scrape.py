@@ -8,15 +8,16 @@ SENDER = ""
 PASS = ""
 RCVR = ""
 
-
 # PARAMETERS FOR REFINING DEALS
-MIN_DISCOUNT = 20 # 20% off minimum
+MIN_DISCOUNT = 95 # 20% off minimum
 MAX_DISCOUNT = 100 # 100% off maximum
 MIN_PRICE = 0 # $0.00 minimum price
 MAX_PRICE = 10 # $10.00 maximum price
 
 host = "https://app.jumpsend.com"
 pastDeals = []
+
+WAIT_TIME = 300 # Interval between searches in seconds
 
 class Deal:
     url = ""
@@ -139,7 +140,6 @@ def emailDeals(Deals):
         return False
 
     BODY = ""
-    
     for Deal in Deals:
         title = Deal.title
         price = "${}".format(str(Deal.price))
@@ -150,18 +150,17 @@ def emailDeals(Deals):
         BODY += "{} \n {} \n {} \n {} \n {} \n {} \n \n".format(
                 title, price, disc, retail, ship, url)
 
-
-    print BODY
-
     SUBJECT = "You have {} new deals to check out on Jump Send!".format(len(Deals))
-
-    print "\n \n" + SUBJECT
 
     os.system("python send_email.py '{}' '{}' '{}' '{}' '{}'".format(
         SENDER, PASS, RCVR, SUBJECT, BODY))
     
 while True:
+    print "Checking for deals..."
     dealLinks = getLinks()
     NewDeals = scrapeDeals(dealLinks)
     emailDeals(NewDeals)
-    sleep(300) # 5 minute intervals between checking for new deals
+    if NewDeals:
+        print "{} new deals were found!".format(len(NewDeals))
+    print "Waiting {} minutes to search again...".format(WAIT_TIME / 60.0)
+    sleep(WAIT_TIME) 
