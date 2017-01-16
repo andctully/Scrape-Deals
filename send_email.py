@@ -9,7 +9,7 @@ args = sys.argv
 sndr = args[1]
 pswd = args[2]
 rcvr = args[3]
-sbjct = args[4]
+subject = args[4]
 body = args[5]
 
 message = 'Subject: %s\n\n%s' % (subject, body)
