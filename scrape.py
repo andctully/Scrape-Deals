@@ -4,12 +4,12 @@ from time import sleep
 from bs4 import BeautifulSoup
 
 # PARAMETERS FOR SENDING EMAIL
-SENDER = ""
-PASS = ""
-RCVR = ""
+SENDER = "" # sender's email
+PASS = ""   # sender's email password
+RCVR = ""   # receiver's email
 
 # PARAMETERS FOR REFINING DEALS
-MIN_DISCOUNT = 95 # 20% off minimum
+MIN_DISCOUNT = 20 # 20% off minimum
 MAX_DISCOUNT = 100 # 100% off maximum
 MIN_PRICE = 0 # $0.00 minimum price
 MAX_PRICE = 10 # $10.00 maximum price
@@ -155,6 +155,7 @@ def emailDeals(Deals):
     os.system("python send_email.py '{}' '{}' '{}' '{}' '{}'".format(
         SENDER, PASS, RCVR, SUBJECT, BODY))
     
+# MAIN FUNCTION
 while True:
     print "Checking for deals..."
     dealLinks = getLinks()
