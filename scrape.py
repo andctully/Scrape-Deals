@@ -14,10 +14,11 @@ MAX_DISCOUNT = 100 # 100% off maximum
 MIN_PRICE = 0 # $0.00 minimum price
 MAX_PRICE = 10 # $10.00 maximum price
 
+WAIT_TIME = 300 # Interval between searches in seconds
+
 host = "https://app.jumpsend.com"
 pastDeals = []
 
-WAIT_TIME = 300 # Interval between searches in seconds
 
 class Deal:
     url = ""
